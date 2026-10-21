@@ -1,6 +1,6 @@
 # Vault Compilation Migration Implementation Plan
 
-> **For agentic workers:** Execute tasks in order with red-green tests for scripts, then run a realistic Skill trial. This plan is executed in the current session against the uncommitted bootstrap checkout.
+> **For agentic workers:** Execute tasks in order with red-green tests for scripts, then run a realistic Skill trial. Work began against the uncommitted bootstrap checkout.
 
 **Goal:** Migrate the original Skill's source-compilation quality rules and make candidate search and note validation work with arbitrary configured Markdown vaults.
 
@@ -26,10 +26,10 @@
 
 **Interfaces:** Agent reads the guidance after source import and may use a template for standard vault notes; adopted vaults use their own conventions.
 
-- [ ] Compare original analysis workflow, extraction rules and four note templates to the new generic workflow.
-- [ ] Write the generic rules for evidence reuse, create/update/skip decisions, source summary, claim counterpoint, concept relationships and framework limits.
-- [ ] Add optional note templates with `type`, `source_snapshot` and `source_fingerprint`; avoid fixed original directory names and writing-only fields.
-- [ ] Run Skill metadata validation and a read-only baseline prompt without the changed guidance.
+- [x] Compare original analysis workflow, extraction rules and four note templates to the new generic workflow.
+- [x] Write the generic rules for evidence reuse, create/update/skip decisions, source summary, claim counterpoint, concept relationships and framework limits.
+- [x] Add optional note templates with `type`, `source_snapshot` and `source_fingerprint`; avoid fixed original directory names and writing-only fields.
+- [x] Run Skill metadata validation and a read-only baseline prompt without the changed guidance.
 
 ### Task 2: Profile-driven candidate search
 
@@ -37,10 +37,10 @@
 
 **Interfaces:** `queryVault({vault, query, limit})` returns `{vault, query, searched_root, results}` with bounded candidates and match signals; `listWikiMarkdown(vault, profile)` returns vault-relative wiki Markdown paths, excluding configured sources and internal directories.
 
-- [ ] Write tests for a standard vault, a root-level adopted vault, Chinese phrase matching, configured source exclusion, symlink exclusion and a limited ranked result set.
-- [ ] Run `node --test tests/vault-query.test.js` and observe missing-behavior failures.
-- [ ] Implement the walker and read-only query using `loadProfile`, safe paths and no hard-coded vault layout.
-- [ ] Run focused and complete tests.
+- [x] Write tests for a standard vault, a root-level adopted vault, Chinese phrase matching, configured source exclusion, symlink exclusion and a limited ranked result set.
+- [x] Run `node --test tests/vault-query.test.js` and observe missing-behavior failures.
+- [x] Implement the walker and read-only query using `loadProfile`, safe paths and no hard-coded vault layout.
+- [x] Run focused and complete tests.
 
 ### Task 3: Profile-driven note validation
 
@@ -48,10 +48,10 @@
 
 **Interfaces:** `checkNotes({vault, note})` returns `{vault, checked_notes, issues}`. Omitted `note` checks every wiki Markdown file; a selected note must be within the configured wiki directory.
 
-- [ ] Write tests for valid standard provenance, missing wikilinks/images, ambiguous wikilinks, out-of-range evidence, source hash mismatch, and adopted notes without standard frontmatter.
-- [ ] Run `node --test tests/check-notes.test.js` and observe missing-behavior failures.
-- [ ] Implement link and evidence checks without modifying notes, honoring profile paths and symlink boundaries.
-- [ ] Run focused and complete tests.
+- [x] Write tests for valid standard provenance, missing wikilinks/images, ambiguous wikilinks, out-of-range evidence, source hash mismatch, and adopted notes without standard frontmatter.
+- [x] Run `node --test tests/check-notes.test.js` and observe missing-behavior failures.
+- [x] Implement link and evidence checks without modifying notes, honoring profile paths and symlink boundaries.
+- [x] Run focused and complete tests.
 
 ### Task 4: Wire the Skill and prove the workflow
 
@@ -59,6 +59,6 @@
 
 **Interfaces:** Agent queries candidate notes before a compilation plan and runs `check-notes.js` after writing, then `check-vault.js` for source integrity.
 
-- [ ] Document the query and note-check commands, result interpretation and standard/adopted distinction.
-- [ ] Run a temporary-vault Skill trial and inspect the actual notes, links and evidence.
-- [ ] Run `npm test`, `quick_validate.py`, `git diff --check` and review changed files before reporting completion.
+- [x] Document the query and note-check commands, result interpretation and standard/adopted distinction.
+- [x] Run command-line and independent-agent trials in temporary standard vaults; inspect the actual notes, links and evidence.
+- [x] Run `npm test`, `quick_validate.py`, `git diff --check` and review changed files before reporting completion.

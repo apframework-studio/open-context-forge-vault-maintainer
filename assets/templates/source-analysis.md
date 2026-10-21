@@ -2,6 +2,8 @@
 type: source_analysis
 source_snapshot:
 source_fingerprint:
+source_authorship:
+source_author:
 recommendation:
 analyzed_at:
 ---
@@ -11,7 +13,8 @@ analyzed_at:
 ## Source and completeness
 
 - Original URL or file:
-- Title, author and date when available:
+- Authorship (`self`, `third_party`, `unknown`) and source author when known:
+- Title and date when available:
 - Source type and completeness:
 - Read range and missing content:
 - Relevance to this vault's purpose or current task:

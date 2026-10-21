@@ -25,6 +25,12 @@ function checkVault(vault) {
     return { vault: root, issues: [...issues, { code: "manifest_invalid", detail: "Unsupported format" }] };
   }
   for (const [fingerprint, record] of Object.entries(manifest.sources)) {
+    if (record.authorship !== undefined && !["self", "third_party", "unknown"].includes(record.authorship)) {
+      issues.push({ code: "source_authorship_invalid", path: record.snapshot, detail: String(record.authorship) });
+    }
+    if (record.author !== undefined && record.author !== null && (typeof record.author !== "string" || !record.author.trim())) {
+      issues.push({ code: "source_author_invalid", path: record.snapshot, detail: String(record.author) });
+    }
     let file;
     try { file = withinVault(root, record.snapshot); }
     catch (error) { issues.push({ code: "source_path_invalid", path: record.snapshot, detail: error.message }); continue; }

@@ -12,6 +12,18 @@ function normalizeUrl(value) {
   return url.toString();
 }
 
+function normalizeAuthorship(value) {
+  if (value == null) return "unknown";
+  if (!["self", "third_party", "unknown"].includes(value)) throw new Error("Authorship must be self, third_party, or unknown");
+  return value;
+}
+
+function normalizeAuthor(value) {
+  if (value == null) return null;
+  if (typeof value !== "string" || !value.trim()) throw new Error("Author must be a nonempty name");
+  return value.trim();
+}
+
 function atomicJson(file, value) {
   const temp = `${file}.${process.pid}.${crypto.randomUUID()}.tmp`;
   try {
@@ -22,8 +34,10 @@ function atomicJson(file, value) {
   }
 }
 
-function importMarkdown({ vault, file, url } = {}) {
+function importMarkdown({ vault, file, url, authorship, author } = {}) {
   if (!vault || !file) throw new Error("Import requires a vault and Markdown file");
+  const declaredAuthorship = normalizeAuthorship(authorship);
+  const declaredAuthor = normalizeAuthor(author);
   const root = fs.realpathSync(vault);
   const profile = loadProfile(root);
   const input = fs.realpathSync(file);
@@ -54,11 +68,23 @@ function importMarkdown({ vault, file, url } = {}) {
       if (!fs.existsSync(existing)) throw new Error(`Recorded source snapshot is missing: ${prior.snapshot}`);
       const existingHash = crypto.createHash("sha256").update(fs.readFileSync(existing)).digest("hex");
       if (existingHash !== fingerprint) throw new Error(`Recorded source snapshot hash mismatch: ${prior.snapshot}`);
+      const priorAuthorship = normalizeAuthorship(prior.authorship);
+      if (declaredAuthorship !== "unknown" && priorAuthorship !== "unknown" && declaredAuthorship !== priorAuthorship) {
+        throw new Error(`Authorship conflict for existing source: ${priorAuthorship} vs ${declaredAuthorship}`);
+      }
+      if (declaredAuthor && prior.author && declaredAuthor !== prior.author) throw new Error(`Author conflict for existing source: ${prior.author} vs ${declaredAuthor}`);
+      let changed = false;
+      if (!prior.authorship || (priorAuthorship === "unknown" && declaredAuthorship !== "unknown")) {
+        prior.authorship = declaredAuthorship === "unknown" ? priorAuthorship : declaredAuthorship;
+        changed = true;
+      }
+      if (declaredAuthor && !prior.author) { prior.author = declaredAuthor; changed = true; }
       if (!prior.origins.some((entry) => entry.url === origin.url && entry.filename === origin.filename)) {
         prior.origins.push(origin);
-        atomicJson(manifestFile, manifest);
+        changed = true;
       }
-      return { vault: root, snapshot: prior.snapshot, fingerprint, duplicate: true, url: originUrl };
+      if (changed) atomicJson(manifestFile, manifest);
+      return { vault: root, snapshot: prior.snapshot, fingerprint, duplicate: true, url: originUrl, authorship: prior.authorship, author: prior.author || null };
     }
 
     const stem = path.basename(input, path.extname(input)).replace(/[^\p{L}\p{N}-]+/gu, "-").replace(/^-|-$/g, "").slice(0, 80) || "source";
@@ -76,10 +102,12 @@ function importMarkdown({ vault, file, url } = {}) {
     manifest.sources[fingerprint] = {
       snapshot: relative,
       imported_at: new Date().toISOString(),
+      authorship: declaredAuthorship,
+      author: declaredAuthor,
       origins: [origin],
     };
     atomicJson(manifestFile, manifest);
-    return { vault: root, snapshot: relative, fingerprint, duplicate: false, recovered, url: originUrl };
+    return { vault: root, snapshot: relative, fingerprint, duplicate: false, recovered, url: originUrl, authorship: declaredAuthorship, author: declaredAuthor };
   } finally {
     fs.closeSync(lock);
     fs.unlinkSync(lockFile);
@@ -90,7 +118,7 @@ if (require.main === module) {
   try {
     const args = parseOptions(process.argv.slice(2));
     const vault = resolveVault({ selector: args.vault, configPath: args.config });
-    const report = importMarkdown({ vault, file: args.file, url: args.url });
+    const report = importMarkdown({ vault, file: args.file, url: args.url, authorship: args.authorship, author: args.author });
     process.stdout.write(args.json ? `${JSON.stringify(report)}\n` : `${report.snapshot} (${report.duplicate ? "existing" : "new"})\n`);
   } catch (error) {
     process.stderr.write(`${error.message}\n`);

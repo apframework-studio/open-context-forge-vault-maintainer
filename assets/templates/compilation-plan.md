@@ -2,6 +2,8 @@
 type: source_compilation_plan
 source_snapshot:
 source_fingerprint:
+source_authorship:
+source_author:
 decision:
 analysis_card:
 ---
@@ -12,6 +14,7 @@ analysis_card:
 
 - Decision: compile_now | defer | keep_raw_only | ask_user
 - Analysis card:
+- Source authorship and author (from manifest or source context):
 - Evidence IDs and line ranges:
 - Missing or conflicting evidence:
 - Does the current source fingerprint still match the analysis card?

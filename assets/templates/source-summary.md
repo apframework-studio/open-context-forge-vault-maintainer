@@ -2,6 +2,8 @@
 type: source
 source_snapshot: "{{vault_relative_source_path}}"
 source_fingerprint: "{{sha256}}"
+source_authorship: {{authorship}}
+source_author: "{{author}}"
 ---
 
 # {{title}}：来源摘要

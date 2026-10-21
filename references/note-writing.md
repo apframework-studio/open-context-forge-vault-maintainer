@@ -23,6 +23,7 @@
 ## 可追溯性
 
 - 标准 vault 的每个编译笔记包含 `type`、`source_snapshot` 和 `source_fingerprint`，正文至少给出一个 `path/to/source.md#L12-L18` 形式的证据位置。引用的路径以 vault 根目录为基准。
+- 标准 vault 的笔记把 manifest 中的 `authorship` 对应为 `source_authorship`，把已知 `author` 对应为 `source_author`。归属未知时写 `unknown`；作者未知时删去模板中的 `source_author` 行。接入已有 vault 时按其字段惯例记录，避免强行改写原有 frontmatter。归属表示谁写了原文，不能由来源文件路径或 URL 推断。
 - 在紧邻结论的位置说明：这是作者的陈述、基于原文的推断，还是独立核对过的事实。说明证据支持到哪里，以及不适用或尚未验证的部分。
 - 来源摘要列出确实存在的派生笔记；Concept 连到相关概念，Claim 写反例或边界，Framework 写适用范围与限制。不要为凑链接指向不存在的笔记。
 - 不复制完整原文，不改写原文快照。编辑已有笔记只改相关段落，保留用户的其他内容。

@@ -42,6 +42,11 @@ function sourceContext({ vault, source, lines: ranges, maxChars = 12000 } = {}) 
     fingerprint: crypto.createHash("sha256").update(bytes).digest("hex"),
     line_count: lineArray.length,
   };
+  const manifest = JSON.parse(fs.readFileSync(withinVault(root, ".ocf/ingest-manifest.json"), "utf8"));
+  const record = manifest.sources?.[report.fingerprint];
+  const matched = record?.snapshot === report.source ? record : null;
+  report.authorship = matched?.authorship || "unknown";
+  report.author = matched?.author || null;
   if (!ranges) {
     report.sections = sectionsFromLines(lineArray).map((section) => ({
       ...section,

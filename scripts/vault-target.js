@@ -6,7 +6,7 @@ function parseOptions(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const key = argv[i];
     if (key === "--json") options.json = true;
-    else if (["--vault", "--config", "--purpose", "--file", "--url", "--source", "--lines", "--sources-dir", "--wiki-dir", "--query", "--limit", "--note"].includes(key)) {
+    else if (["--vault", "--config", "--purpose", "--file", "--url", "--source", "--lines", "--sources-dir", "--wiki-dir", "--query", "--limit", "--note", "--authorship", "--author"].includes(key)) {
       if (!argv[i + 1]) throw new Error(`${key} requires a value`);
       options[key.slice(2)] = argv[++i];
     } else throw new Error(`Unknown option: ${key}`);

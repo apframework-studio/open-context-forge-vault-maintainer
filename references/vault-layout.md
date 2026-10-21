@@ -20,6 +20,8 @@ wiki/log.md
 
 `purpose.md` 记录收录目标。`schema.md` 记录来源、编译笔记和链接规则。`raw/sources/` 保留不可变快照；`wiki/` 保存长期知识；`index.md` 是导航，`log.md` 追加变更。`.ocf/` 保存稳定 vault ID、相对目录映射和内容哈希，不保存本机绝对路径。新类别目录在首次使用时创建。
 
+`.ocf/ingest-manifest.json` 还保存每份来源的 `authorship`（`self`、`third_party` 或 `unknown`）、可选 `author` 及 `origins`。旧 manifest 没有归属字段时按 `unknown` 读取，不需要批量改写。
+
 ## 接入现有 vault
 
 先确定一个已存在的知识笔记目录，再选择一个 vault 内的来源目录；来源目录可以由接入命令创建。接入只新增 `.ocf/` 状态和必要来源目录。现有 vault 可没有 `purpose.md`、`schema.md`、`index.md` 或 `log.md`；如果它已有相关文件，则按其惯例使用。接入前检查目标目录是否已存在 `.ocf/`，避免重复或覆盖。

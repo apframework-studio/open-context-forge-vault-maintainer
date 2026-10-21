@@ -32,6 +32,8 @@ function initializeVault(vaultPath, { purpose = DEFAULT_PURPOSE } = {}) {
       "Raw source snapshots live in `raw/sources/` and remain unchanged after import.",
       "Compiled Markdown notes live in `wiki/`; source summaries may be placed in `wiki/sources/`.",
       "Compiled notes use YAML frontmatter with `type`, `source_snapshot` (vault-relative path), and `source_fingerprint` (SHA-256).",
+      "Compiled notes record `source_authorship: self | third_party | unknown` from the ingest manifest; include optional `source_author` when known. `unknown` is the default.",
+      "Authorship means whether the user wrote the source, not whether it arrived by local file or URL. Do not infer it from the input channel.",
       "Use `type: source` for a source summary; use a descriptive type such as `concept`, `claim`, or `framework` for reusable knowledge.",
       "In the body, cite supporting source lines as `raw/sources/example.md#L12-L18` and explain limits or uncertainty near each claim.",
       "Separate an author's statement from your own inference and any independently checked fact.",
