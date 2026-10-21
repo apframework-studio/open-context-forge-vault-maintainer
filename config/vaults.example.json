@@ -1,0 +1,6 @@
+{
+  "vaults": {
+    "research": { "path": "../vaults/research" },
+    "reading": { "path": "../vaults/reading" }
+  }
+}
