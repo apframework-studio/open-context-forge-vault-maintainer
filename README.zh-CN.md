@@ -104,6 +104,6 @@ node scripts/check-vault.js --vault /absolute/path/to/vault --json
 
 同一 vault 同时只允许一次导入。若提示导入正在进行，等待后重试；若进程异常退出留下 `.ocf/ingest.lock`，先确认没有导入进程，再移走锁文件。快照已写入但 manifest 未登记时，用同一文件重新导入可恢复登记。
 
-`vault-query.js` 只返回相关候选，智能体还需要阅读后判断是否重复或冲突。`check-notes.js` 检查本地链接、图片、Obsidian 双链与 `![[图片.png]]` 附件，以及 `raw/sources/article.md#L12-L18` 形式的证据行号；标准 vault 还检查编译笔记的来源字段及快照哈希。接入已有 vault 时不强加标准 frontmatter。链接检查确认文件是否存在，不核对标题锚点。`check-vault.js` 检查 vault 配置、必要文件、manifest 和原文快照哈希。自动检查无法判断证据是否真正支持结论，索引内容也仍需智能体复核。开发时可运行 `npm test`，Skill 元数据可用 Codex Skill Creator 的 `quick_validate.py` 校验。
+`vault-query.js` 只返回相关候选，智能体还需要阅读后判断是否重复或冲突。`check-notes.js` 检查本地链接、图片、Obsidian 双链与 `![[图片.png]]` 附件，以及 `raw/sources/article.md#L12-L18` 形式的证据行号；标准 vault 还检查编译笔记的来源字段、快照哈希，并在归属字段已填写时对照 manifest 发现过期值。接入已有 vault 时不强加标准 frontmatter。链接检查确认文件是否存在，不核对标题锚点。`check-vault.js` 检查 vault 配置、必要文件、manifest 和原文快照哈希。自动检查无法判断证据是否真正支持结论，索引内容也仍需智能体复核。开发时可运行 `npm test`，Skill 元数据可用 Codex Skill Creator 的 `quick_validate.py` 校验。
 
 公开前尚需完成的事项见 [发布准备清单](docs/public-release-readiness.md)。仓库目前保持私有。

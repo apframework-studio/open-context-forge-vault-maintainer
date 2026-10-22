@@ -68,6 +68,7 @@ function importMarkdown({ vault, file, url, authorship, author } = {}) {
       if (!fs.existsSync(existing)) throw new Error(`Recorded source snapshot is missing: ${prior.snapshot}`);
       const existingHash = crypto.createHash("sha256").update(fs.readFileSync(existing)).digest("hex");
       if (existingHash !== fingerprint) throw new Error(`Recorded source snapshot hash mismatch: ${prior.snapshot}`);
+      const inputIsSnapshot = input === fs.realpathSync(existing);
       const priorAuthorship = normalizeAuthorship(prior.authorship);
       if (declaredAuthorship !== "unknown" && priorAuthorship !== "unknown" && declaredAuthorship !== priorAuthorship) {
         throw new Error(`Authorship conflict for existing source: ${priorAuthorship} vs ${declaredAuthorship}`);
@@ -79,8 +80,12 @@ function importMarkdown({ vault, file, url, authorship, author } = {}) {
         changed = true;
       }
       if (declaredAuthor && !prior.author) { prior.author = declaredAuthor; changed = true; }
-      if (!prior.origins.some((entry) => entry.url === origin.url && entry.filename === origin.filename)) {
-        prior.origins.push(origin);
+      const newOrigin = inputIsSnapshot ? (originUrl ? { url: originUrl, filename: null } : null) : origin;
+      const knownOrigin = newOrigin && prior.origins.some((entry) => inputIsSnapshot
+        ? entry.url === newOrigin.url
+        : entry.url === newOrigin.url && entry.filename === newOrigin.filename);
+      if (newOrigin && !knownOrigin) {
+        prior.origins.push(newOrigin);
         changed = true;
       }
       if (changed) atomicJson(manifestFile, manifest);

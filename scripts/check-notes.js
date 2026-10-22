@@ -13,7 +13,15 @@ function frontmatter(content) {
   const fields = {};
   for (const line of block[1].split(/\r?\n/)) {
     const pair = line.match(/^([\w-]+):\s*(.*?)\s*$/);
-    if (pair) fields[pair[1]] = pair[2].replace(/^(["'])(.*)\1$/, "$2");
+    if (pair) {
+      const value = pair[2];
+      if (value.startsWith('"') && value.endsWith('"')) {
+        try { fields[pair[1]] = JSON.parse(value); }
+        catch { fields[pair[1]] = value.slice(1, -1); }
+      } else if (value.startsWith("'") && value.endsWith("'")) {
+        fields[pair[1]] = value.slice(1, -1).replace(/''/g, "'");
+      } else fields[pair[1]] = value;
+    }
   }
   return fields;
 }
@@ -55,6 +63,7 @@ function checkNotes({ vault, note } = {}) {
   }
   const issues = [];
   const add = (code, file, detail) => issues.push({ code, path: file, detail });
+  let manifest;
   for (const file of selected) {
     const absolute = withinVault(root, file);
     const content = fs.readFileSync(absolute, "utf8");
@@ -78,6 +87,28 @@ function checkNotes({ vault, note } = {}) {
           if (actual !== fields.source_fingerprint) add("source_fingerprint_mismatch", file, fields.source_snapshot);
         }
       } catch (error) { add("source_snapshot_invalid", file, `${fields.source_snapshot}: ${error.message}`); }
+    }
+
+    if (profile.mode === "standard" && fields.source_snapshot && fields.source_fingerprint && (fields.source_authorship !== undefined || fields.source_author !== undefined)) {
+      try {
+        manifest ||= JSON.parse(fs.readFileSync(withinVault(root, ".ocf/ingest-manifest.json"), "utf8"));
+        const record = manifest.sources?.[fields.source_fingerprint];
+        if (record?.snapshot !== fields.source_snapshot) {
+          add("source_manifest_missing", file, fields.source_snapshot);
+        } else {
+          const expectedAuthorship = record.authorship || "unknown";
+          if (fields.source_authorship !== undefined && fields.source_authorship !== expectedAuthorship) {
+            add("source_authorship_mismatch", file, `Note: ${fields.source_authorship}; manifest: ${expectedAuthorship}`);
+          }
+          const expectedAuthor = record.author || "";
+          if (fields.source_authorship !== undefined && expectedAuthor && fields.source_author === undefined) {
+            add("source_author_missing", file, `Manifest author: ${expectedAuthor}`);
+          }
+          if (fields.source_author !== undefined && fields.source_author !== expectedAuthor) {
+            add("source_author_mismatch", file, `Note: ${fields.source_author}; manifest: ${expectedAuthor}`);
+          }
+        }
+      } catch (error) { add("source_manifest_invalid", file, error.message); }
     }
 
     let evidenceCount = 0;

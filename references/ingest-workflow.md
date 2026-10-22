@@ -6,7 +6,7 @@
 
 导入时将内容归属与获取方式分开：用户明确表示亲自撰写时传 `--authorship self`，明确表示收集他人文章时传 `--authorship third_party`，否则省略并记录为 `unknown`。知道原文作者时传 `--author "姓名"`。不要仅凭本地 Markdown 或网页 URL 判断作者是谁。manifest 保存归属和作者，`origins` 保存 URL 与文件名。重复导入可把 `unknown` 补成已知归属；已知归属或作者发生冲突时停止并核对，不要静默覆盖。
 
-若归属在编译后才补充，按来源指纹找到 `.ocf/compilations/<fingerprint>/` 中已有分析卡和计划，并在知识笔记目录查找引用该快照或指纹的笔记。只更新相关归属和作者字段，保留其他内容；原文快照不变。接入已有 vault 时遵循其现有元数据惯例。
+若归属在编译后才补充，可用原始 Markdown 重复导入；原文件已不在时，改用 vault 内快照作为 `--file`，导入器不会把快照文件名记成新来源。按来源指纹找到 `.ocf/compilations/<fingerprint>/` 中已有分析卡和计划，并在知识笔记目录查找引用该快照或指纹的笔记。只更新相关归属和作者字段，保留其他内容；原文快照不变。接入已有 vault 时遵循其现有元数据惯例。
 
 ## 2. 一次完整语义阅读
 
@@ -35,4 +35,4 @@ node scripts/vault-query.js --vault <vault> --query "主题或别名" --limit 10
 
 计划为 `compile_now` 且证据充分时执行明确的写回。遵循 [知识笔记编译规则](note-writing.md)。标准 vault 可按 `assets/templates/` 创建来源摘要、concept、claim、framework；已有 vault 采用其既有知识组织方式。来源摘要回链快照；判断型笔记写明证据与边界；相关链接只指向实际存在的笔记。更新用户已有笔记时保留其 frontmatter 与无关段落。标准 vault 更新 `wiki/index.md` 并追加 `wiki/log.md`；已有 vault 只更新其实际使用的索引与日志。
 
-运行 `node scripts/check-notes.js --vault <vault> --note <vault-relative-note.md> --json` 检查每个新增/修改的笔记，或省略 `--note` 检查整个知识笔记目录；再运行 `check-vault.js` 检查快照完整性。检查器识别 `path/to/source.md#L12-L18` 行证据、Markdown 本地链接/图片、Obsidian `[[wikilink]]` 和 `![[图片.png]]` 附件。它只能验证文件路径、行号、哈希与链接目标是否存在，不核对标题锚点；Agent 还需核对证据是否支持结论，并确认索引更新。完成报告列出目标 vault、来源指纹、快照、创建/更新/跳过的笔记、校验结果及未决问题。
+运行 `node scripts/check-notes.js --vault <vault> --note <vault-relative-note.md> --json` 检查每个新增/修改的笔记，或省略 `--note` 检查整个知识笔记目录；再运行 `check-vault.js` 检查快照完整性。检查器识别 `path/to/source.md#L12-L18` 行证据、Markdown 本地链接/图片、Obsidian `[[wikilink]]` 和 `![[图片.png]]` 附件；标准 vault 笔记如果写了归属或作者字段，也会对照 manifest 查出过期值。它只能验证文件路径、行号、哈希、链接目标和元数据一致性，不核对标题锚点；Agent 还需核对证据是否支持结论，并确认索引更新。完成报告列出目标 vault、来源指纹、快照、创建/更新/跳过的笔记、校验结果及未决问题。

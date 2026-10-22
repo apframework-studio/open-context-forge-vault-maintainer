@@ -18,7 +18,7 @@ description: Use when importing an article URL, Markdown file, or web clip into 
 
 - `import-only` 适用于用户只要求收藏原文；“纳入知识库”“沉淀知识”等请求进入完整编译。不要把每篇文章机械地拆成固定数量的笔记。
 - 来源归属单独记录：用户明确说“我写的文章”才用 `--authorship self`，明确是他人文章或收集文章才用 `third_party`；不明确时保持 `unknown`。本地文件和 URL 只是获取方式，不能据此推断归属。知道署名时再传 `--author`；从 `source-context.js` 读取归属并写进分析卡、计划及标准 vault 的来源笔记。
-- 后来补充归属时，重复导入同一内容以更新 manifest；按指纹检查已有分析卡、计划和引用该快照的知识笔记，只局部同步归属字段，不改原文快照或无关内容。
+- 后来补充归属时，重复导入同一内容以更新 manifest；原始 Markdown 已不在时可把 vault 内快照作为 `--file`，导入器不会把快照文件名记成新来源文件。按指纹检查已有分析卡、计划和引用该快照的知识笔记，只局部同步归属字段，不改原文快照或无关内容。
 - 写 Wiki 前必须有 Source Analysis Card 和 Compilation Plan。先用 `node scripts/vault-query.js --vault <path-or-name> [--config <file>] --query <topic> --json` 找候选并阅读相关笔记。计划说明已有笔记的复用、新增、更新及跳过理由；证据引用 `source-context.js` 输出的指纹与行区间。查询只提供候选，不自动判定语义重复。
 - 只把稳定、可复用且有来源支持的内容写进知识笔记。区分原文陈述、基于原文的推断与外部核对。相近或矛盾观点不要静默覆盖。
 - 新建标准 vault 按目标 vault 内的 `schema.md` 写入；接入已有 vault 时遵循其现有命名、frontmatter、索引和链接惯例。没有现成惯例时，采用简短 Markdown 笔记并显式记录来源快照路径和证据位置。

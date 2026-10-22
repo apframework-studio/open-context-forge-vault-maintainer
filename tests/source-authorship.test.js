@@ -74,6 +74,25 @@ test("an explicit attribution upgrades unknown on duplicate import without anoth
   assert.equal(fs.readdirSync(path.join(vault, "raw", "sources")).filter((name) => name.endsWith(".md")).length, 1);
 });
 
+test("updating attribution from the vault snapshot does not invent another origin", (t) => {
+  const { vault, file } = fixture(t);
+  const first = importMarkdown({ vault, file, url: "https://example.com/article" });
+  const second = importMarkdown({ vault, file: path.join(vault, first.snapshot), authorship: "self" });
+  assert.equal(second.duplicate, true);
+  assert.equal(second.authorship, "self");
+  assert.deepEqual(manifest(vault).sources[first.fingerprint].origins, [{ url: "https://example.com/article", filename: "article.md" }]);
+});
+
+test("a URL learned from a snapshot reimport is kept without claiming a new file", (t) => {
+  const { vault, file } = fixture(t);
+  const first = importMarkdown({ vault, file });
+  importMarkdown({ vault, file: path.join(vault, first.snapshot), url: "https://example.com/article", authorship: "third_party" });
+  assert.deepEqual(manifest(vault).sources[first.fingerprint].origins, [
+    { url: null, filename: "article.md" },
+    { url: "https://example.com/article", filename: null },
+  ]);
+});
+
 test("conflicting attribution is rejected without changing existing provenance", (t) => {
   const { vault, file } = fixture(t);
   const first = importMarkdown({ vault, file, authorship: "self", author: "Shoukai" });
@@ -128,6 +147,27 @@ test("note check detects attribution that became stale after a source update", (
   assert.deepEqual(checkNotes({ vault }).issues, []);
   importMarkdown({ vault, file, authorship: "self", author: "Shoukai" });
   assert.ok(checkNotes({ vault }).issues.some((issue) => issue.code === "source_authorship_mismatch"));
-  fs.writeFileSync(note, fs.readFileSync(note, "utf8").replace("source_authorship: unknown", "source_authorship: self\nsource_author: Shoukai"));
+  fs.writeFileSync(note, fs.readFileSync(note, "utf8").replace("source_authorship: unknown", "source_authorship: self"));
+  assert.ok(checkNotes({ vault }).issues.some((issue) => issue.code === "source_author_missing"));
+  fs.writeFileSync(note, fs.readFileSync(note, "utf8").replace("source_authorship: self", "source_authorship: self\nsource_author: Shoukai"));
+  assert.deepEqual(checkNotes({ vault }).issues, []);
+});
+
+test("note attribution check reports a missing manifest source", (t) => {
+  const { vault, file } = fixture(t);
+  const report = importMarkdown({ vault, file, authorship: "self" });
+  const note = path.join(vault, "wiki", "article-note.md");
+  fs.writeFileSync(note, `---\ntype: source\nsource_snapshot: "${report.snapshot}"\nsource_fingerprint: "${report.fingerprint}"\nsource_authorship: self\n---\n# Article note\n\nEvidence: \`${report.snapshot}#L1-L2\`.\n`);
+  const data = manifest(vault);
+  delete data.sources[report.fingerprint];
+  fs.writeFileSync(path.join(vault, ".ocf", "ingest-manifest.json"), JSON.stringify(data));
+  assert.ok(checkNotes({ vault }).issues.some((issue) => issue.code === "source_manifest_missing"));
+});
+
+test("quoted YAML author names compare to manifest without false mismatches", (t) => {
+  const { vault, file } = fixture(t);
+  const report = importMarkdown({ vault, file, authorship: "third_party", author: 'Ada "A" Lovelace' });
+  const note = path.join(vault, "wiki", "article-note.md");
+  fs.writeFileSync(note, `---\ntype: source\nsource_snapshot: "${report.snapshot}"\nsource_fingerprint: "${report.fingerprint}"\nsource_authorship: third_party\nsource_author: "Ada \\"A\\" Lovelace"\n---\n# Article note\n\nEvidence: \`${report.snapshot}#L1-L2\`.\n`);
   assert.deepEqual(checkNotes({ vault }).issues, []);
 });
