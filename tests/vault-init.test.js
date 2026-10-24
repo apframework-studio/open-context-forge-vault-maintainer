@@ -106,6 +106,31 @@ test("adopts an existing Obsidian vault without rewriting its notes", (t) => {
   assert.deepEqual(checkVault(vault).issues, []);
 });
 
+test("adoption rejects external symlinks for source and wiki directories", (t) => {
+  const root = tempDir(t);
+  const vault = path.join(root, "existing");
+  const outside = path.join(root, "outside");
+  fs.mkdirSync(path.join(vault, "Notes"), { recursive: true });
+  fs.mkdirSync(outside);
+  const { adoptVault } = require("../scripts/adopt-vault");
+  fs.symlinkSync(outside, path.join(vault, "ExternalSources"), "dir");
+  assert.throws(() => adoptVault(vault, { sourcesDir: "ExternalSources", wikiDir: "Notes" }), /symbolic link|symlink|outside/i);
+  fs.unlinkSync(path.join(vault, "ExternalSources"));
+  fs.symlinkSync(outside, path.join(vault, "ExternalWiki"), "dir");
+  assert.throws(() => adoptVault(vault, { sourcesDir: "Sources", wikiDir: "ExternalWiki" }), /symbolic link|symlink|outside/i);
+  assert.equal(fs.existsSync(path.join(vault, ".ocf")), false);
+});
+
+test("adoption rejects source and wiki paths resolving to the same directory", (t) => {
+  const root = tempDir(t);
+  const vault = path.join(root, "existing");
+  fs.mkdirSync(path.join(vault, "Notes"), { recursive: true });
+  fs.symlinkSync(path.join(vault, "Notes"), path.join(vault, "SourcesAlias"), "dir");
+  const { adoptVault } = require("../scripts/adopt-vault");
+  assert.throws(() => adoptVault(vault, { sourcesDir: "SourcesAlias", wikiDir: "Notes" }), /must differ|symbolic link|symlink/i);
+  assert.equal(fs.existsSync(path.join(vault, ".ocf")), false);
+});
+
 test("adoption rejects paths outside vault before creating metadata", (t) => {
   const root = tempDir(t);
   const vault = path.join(root, "existing");

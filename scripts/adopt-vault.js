@@ -4,16 +4,25 @@ const path = require("node:path");
 const { parseOptions, resolveVault } = require("./vault-target");
 const { withinVault } = require("./vault-profile");
 
+function rejectSymlink(pathname, label) {
+  if (fs.existsSync(pathname) && fs.lstatSync(pathname).isSymbolicLink()) {
+    throw new Error(`${label} path must not be a symbolic link: ${pathname}`);
+  }
+}
+
 function adoptVault(vaultPath, { sourcesDir, wikiDir } = {}) {
   if (!sourcesDir || !wikiDir) throw new Error("Adoption requires --sources-dir and --wiki-dir");
+  if (fs.lstatSync(vaultPath).isSymbolicLink()) throw new Error("Vault path must not be a symbolic link");
   const vault = fs.realpathSync(vaultPath);
   const metadataDir = withinVault(vault, ".ocf");
   if (fs.existsSync(metadataDir)) throw new Error("Vault already has .ocf metadata; inspect it before adoption");
   const sources = withinVault(vault, sourcesDir);
   const wiki = withinVault(vault, wikiDir);
+  rejectSymlink(sources, "Source");
+  rejectSymlink(wiki, "Wiki");
   if (!fs.statSync(wiki).isDirectory()) throw new Error(`Wiki path is not a directory: ${wikiDir}`);
   if (fs.existsSync(sources) && !fs.statSync(sources).isDirectory()) throw new Error(`Source path is not a directory: ${sourcesDir}`);
-  if (sources === wiki) throw new Error("Source and wiki directories must differ");
+  if (fs.existsSync(sources) && fs.realpathSync(sources) === fs.realpathSync(wiki)) throw new Error("Source and wiki directories must differ");
   fs.mkdirSync(sources, { recursive: true });
   fs.mkdirSync(metadataDir);
   const profile = {

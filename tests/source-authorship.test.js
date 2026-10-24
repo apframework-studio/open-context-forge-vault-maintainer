@@ -64,6 +64,28 @@ test("an old manifest record without authorship remains readable as unknown", (t
   assert.deepEqual(checkVault(vault).issues, []);
 });
 
+test("duplicate import remains compatible when an old manifest record lacks origins", (t) => {
+  const { vault, file } = fixture(t);
+  const first = importMarkdown({ vault, file });
+  const data = manifest(vault);
+  delete data.sources[first.fingerprint].origins;
+  fs.writeFileSync(path.join(vault, ".ocf", "ingest-manifest.json"), JSON.stringify(data));
+  const second = importMarkdown({ vault, file, url: "https://example.com/article" });
+  assert.equal(second.duplicate, true);
+  assert.deepEqual(manifest(vault).sources[first.fingerprint].origins, [
+    { url: "https://example.com/article", filename: "article.md" },
+  ]);
+});
+
+test("vault check reports a malformed origins field", (t) => {
+  const { vault, file } = fixture(t);
+  const report = importMarkdown({ vault, file });
+  const data = manifest(vault);
+  data.sources[report.fingerprint].origins = null;
+  fs.writeFileSync(path.join(vault, ".ocf", "ingest-manifest.json"), JSON.stringify(data));
+  assert.ok(checkVault(vault).issues.some((issue) => issue.code === "source_origins_invalid"));
+});
+
 test("an explicit attribution upgrades unknown on duplicate import without another snapshot", (t) => {
   const { vault, file } = fixture(t);
   const first = importMarkdown({ vault, file });

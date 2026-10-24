@@ -80,12 +80,17 @@ function importMarkdown({ vault, file, url, authorship, author } = {}) {
         changed = true;
       }
       if (declaredAuthor && !prior.author) { prior.author = declaredAuthor; changed = true; }
+      const priorOrigins = Array.isArray(prior.origins) ? prior.origins : [];
+      if (!Array.isArray(prior.origins)) {
+        prior.origins = priorOrigins;
+        changed = true;
+      }
       const newOrigin = inputIsSnapshot ? (originUrl ? { url: originUrl, filename: null } : null) : origin;
-      const knownOrigin = newOrigin && prior.origins.some((entry) => inputIsSnapshot
-        ? entry.url === newOrigin.url
-        : entry.url === newOrigin.url && entry.filename === newOrigin.filename);
+      const knownOrigin = newOrigin && priorOrigins.some((entry) => inputIsSnapshot
+        ? entry && entry.url === newOrigin.url
+        : entry && entry.url === newOrigin.url && entry.filename === newOrigin.filename);
       if (newOrigin && !knownOrigin) {
-        prior.origins.push(newOrigin);
+        priorOrigins.push(newOrigin);
         changed = true;
       }
       if (changed) atomicJson(manifestFile, manifest);

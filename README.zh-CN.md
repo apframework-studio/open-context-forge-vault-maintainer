@@ -100,7 +100,7 @@ node scripts/check-vault.js --vault /absolute/path/to/vault --json
 
 初始化只接受新目录或空目录；接入命令保留已有笔记。`import-markdown.js` 按内容哈希保存不可变快照，同一内容重复导入不会生成第二份，同一网址内容变化则保留新旧版本。
 
-收集的文章可改用 `--authorship third_party --author "原作者"`。归属或作者不明确时省略相应参数；manifest 和 `source-context.js` 会给出归属，标准 vault 的笔记用 `source_authorship` 和已知时的 `source_author` 保留它。重复导入可以把 `unknown` 补成已知归属；已有明确归属发生冲突时会拒绝覆盖。旧 manifest 缺失该字段时按 `unknown` 读取。
+收集的文章可改用 `--authorship third_party --author "原作者"`。归属或作者不明确时省略相应参数；manifest 和 `source-context.js` 会给出归属，标准 vault 的笔记用 `source_authorship` 和已知时的 `source_author` 保留它。重复导入可以把 `unknown` 补成已知归属；已有明确归属发生冲突时会拒绝覆盖。旧 manifest 缺失 `authorship`、`author` 或 `origins` 时分别按 unknown、未知作者和空来源列表兼容读取；其他损坏结构会由校验器报告。
 
 同一 vault 同时只允许一次导入。若提示导入正在进行，等待后重试；若进程异常退出留下 `.ocf/ingest.lock`，先确认没有导入进程，再移走锁文件。快照已写入但 manifest 未登记时，用同一文件重新导入可恢复登记。
 

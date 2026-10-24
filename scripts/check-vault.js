@@ -31,6 +31,9 @@ function checkVault(vault) {
     if (record.author !== undefined && record.author !== null && (typeof record.author !== "string" || !record.author.trim())) {
       issues.push({ code: "source_author_invalid", path: record.snapshot, detail: String(record.author) });
     }
+    if (record.origins !== undefined && (!Array.isArray(record.origins) || record.origins.some((origin) => !origin || typeof origin !== "object" || typeof origin.url !== "string" && origin.url !== null || typeof origin.filename !== "string" && origin.filename !== null))) {
+      issues.push({ code: "source_origins_invalid", path: record.snapshot, detail: "origins must be an array of { url, filename } entries" });
+    }
     let file;
     try { file = withinVault(root, record.snapshot); }
     catch (error) { issues.push({ code: "source_path_invalid", path: record.snapshot, detail: error.message }); continue; }
